@@ -1,12 +1,13 @@
 # This file contains the code to launch the Client
 
-import socket, pickle, struct, cv2,Constants,threading
+import socket, pickle, struct, cv2, Constants, threading
 from functools import partial
 from tkinter import *
 
+
 class WebCamClient():
 
-    def startWebCamClient(self,isCorrectIP=None):
+    def startWebCamClient(self, isCorrectIP=None):
         Window = Tk()
         # Renaming the window title
         Window.title("WebCam Streaming Window")
@@ -29,7 +30,7 @@ class WebCamClient():
         # If terminated by using the Close Button, Shutting down the web cam
         print("Here!!!!!!!!!!!!!!!!!!!!!!!!!")
 
-    def webCamClient(self, ip_text,Window):
+    def webCamClient(self, ip_text, Window):
         # destroying the current window
 
         print("destroying window")
@@ -49,29 +50,28 @@ class WebCamClient():
         print("Receiving web cam feed")
         self.receiveWebCamFeed(client_socket)
 
-
-    def receiveWebCamFeed(self,client_socket):
+    def receiveWebCamFeed(self, client_socket):
         # Creating a Client socket
 
         # client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         # host_ip = Constants.HOST_IP
         # port = Constants.CLIENT_PORT
         # client_socket.connect((host_ip,port)) # socket address is a tuple
-        data = b"" # data encoding taken as bytes
+        data = b""  # data encoding taken as bytes
 
         payload_size = struct.calcsize("Q")
         while True:
             try:
                 while len(data) < payload_size:
-                    packet = client_socket.recv(Constants.PACKET_SIZE) # receiving buffer size 4KB min = 1KB max = 64KB
+                    packet = client_socket.recv(Constants.PACKET_SIZE)  # receiving buffer size 4KB min = 1KB max = 64KB
                     if not packet:
                         break
-                    data+=packet
+                    data += packet
                 packed_msg_size = data[:payload_size]
                 data = data[payload_size:]
-                msg_size = struct.unpack("Q",packed_msg_size)[0]
-                while len(data)<msg_size:
-                    data+=client_socket.recv(Constants.PACKET_SIZE)
+                msg_size = struct.unpack("Q", packed_msg_size)[0]
+                while len(data) < msg_size:
+                    data += client_socket.recv(Constants.PACKET_SIZE)
                 frame_data = data[:msg_size]
                 data = data[msg_size:]
                 # loads is used to load pickled data from a bytes string. The "s" in loads refers to the fact that in Python 2, the data was loaded from a string.
@@ -79,18 +79,18 @@ class WebCamClient():
                 cv2.imshow("Receiving Video. Press \'q\' to exit the screen'", frame)
                 key = cv2.waitKey(1) & 0xFF
                 # cv2.getWindowProperty('window-name', 0) < 0 or
-                if key== ord('q'):
+                if key == ord('q'):
                     break
             except Exception:
                 print("Exception. Streaming stopped from server")
                 break
         client_socket.close()
 
+
 def main():
     web_cam_client = WebCamClient()
     web_cam_client.startWebCamClient(True)
 
+
 if __name__ == '__main__':
     main()
-
-

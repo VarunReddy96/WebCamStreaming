@@ -5,9 +5,9 @@ from functools import partial
 from tkinter import *
 
 
-class WebCamClient():
+class WebCamClient:
 
-    def startWebCamClient(self, isCorrectIP=None):
+    def start_webcam_client(self, isCorrectIP=None):
         Window = Tk()
         # Renaming the window title
         Window.title("WebCam Streaming Window")
@@ -22,7 +22,7 @@ class WebCamClient():
 
         # Creating the connect Button
         # print(ip_text.get(),"--------------------------")
-        add_btn = Button(Window, text='Connect', width=12, command=partial(self.webCamClient, ip_text, Window)).pack()
+        add_btn = Button(Window, text='Connect', width=12, command=partial(self.webcam_client, ip_text, Window)).pack()
         # add_btn.grid(row=2, column=0, padx=320)
         if not isCorrectIP:
             ip_label = Label(Window, text='Please enter correct IP address', font=['bold']).pack()
@@ -30,7 +30,7 @@ class WebCamClient():
         # If terminated by using the Close Button, Shutting down the web cam
         print("Here!!!!!!!!!!!!!!!!!!!!!!!!!")
 
-    def webCamClient(self, ip_text, Window):
+    def webcam_client(self, ip_text, Window):
         # destroying the current window
 
         print("destroying window")
@@ -43,14 +43,15 @@ class WebCamClient():
         port = Constants.CLIENT_PORT
         try:
             client_socket.connect((host_ip, port))  # socket address is a tuple
+            client_socket.settimeout(2)
         except Exception:
-            self.startWebCamClient(False)
+            self.start_webcam_client(False)
             return
 
         print("Receiving web cam feed")
-        self.receiveWebCamFeed(client_socket)
+        self.receive_webcam_feed(client_socket)
 
-    def receiveWebCamFeed(self, client_socket):
+    def receive_webcam_feed(self, client_socket):
         # Creating a Client socket
 
         # client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -89,7 +90,7 @@ class WebCamClient():
 
 def main():
     web_cam_client = WebCamClient()
-    web_cam_client.startWebCamClient(True)
+    web_cam_client.start_webcam_client(True)
 
 
 if __name__ == '__main__':

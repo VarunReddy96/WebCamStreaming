@@ -4,7 +4,8 @@ import socket, pickle, struct, cv2, Constants, threading
 from functools import partial
 from tkinter import *
 
-class WebCam():
+
+class Webcam:
 
     def __init__(self):
         self.isWebCamAlive = True
@@ -55,7 +56,7 @@ class WebCam():
     #             cv2.destroyAllWindows()
 
 
-    def startWebCamClient(self,isCorrectIP=None):
+    def start_webcam_client(self, isCorrectIP=None):
         Window = Tk()
         # Renaming the window title
         Window.title("WebCam Streaming Window")
@@ -70,7 +71,7 @@ class WebCam():
 
         # Creating the connect Button
         # print(ip_text.get(),"--------------------------")
-        add_btn = Button(Window, text='Connect', width=12, command=partial(self.webCamClient, ip_text, Window)).pack()
+        add_btn = Button(Window, text='Connect', width=12, command=partial(self.webcam_client, ip_text, Window)).pack()
         #add_btn.grid(row=2, column=0, padx=320)
         if not isCorrectIP:
             ip_label = Label(Window, text='Please enter correct IP address', font=['bold']).pack()
@@ -80,7 +81,7 @@ class WebCam():
         #self.isWebCamAlive = False
         # print("WebCam Started")
 
-    def webCamClient(self, ip_text,Window):
+    def webcam_client(self, ip_text, Window):
 
         # destroying the current window
 
@@ -95,12 +96,12 @@ class WebCam():
         try:
             client_socket.connect((host_ip, port))  # socket address is a tuple
         except Exception:
-            self.startWebCamClient(False)
+            self.start_webcam_client(False)
             return
         # self.successfulConnection = True
 
         print("web cam started")
-        threading.Thread(target=self.webCamClientFeeder,args=[client_socket]).start()
+        threading.Thread(target=self.webcam_client_feeder, args=[client_socket]).start()
 
         # Creating a new window to terminate the web cam feed
         new_window = Tk()
@@ -116,7 +117,7 @@ class WebCam():
         # Creating the Terminate Button
         # print(ip_text.get(),"--------------------------")
 
-        add_btn = Button(new_window, text='Terminate Feed', width=12, command=partial(self.shutdownThread, new_window)).pack()
+        add_btn = Button(new_window, text='Terminate Feed', width=12, command=partial(self.shutdown_thread, new_window)).pack()
         new_window.mainloop()
         # If the window is closed using the close button, shutting down the thread
         self.isWebCamAlive = False
@@ -125,7 +126,7 @@ class WebCam():
 
 
 
-    def webCamClientFeeder(self,client_socket):
+    def webcam_client_feeder(self, client_socket):
 
         vid = cv2.VideoCapture(0)  # Opening the WebCam using the 0 index or the 1st available camera
 
@@ -155,7 +156,7 @@ class WebCam():
         cv2.destroyAllWindows()
         print("Completed the feeding thread")
 
-    def shutdownThread(self,Window):
+    def shutdown_thread(self, Window):
         self.isWebCamAlive= False
         Window.destroy()
         print("Destroyed the terminate window")
@@ -168,8 +169,8 @@ class WebCam():
 
 
 def main():
-    webcam = WebCam()
-    webcam.startWebCamClient(True)
+    webcam = Webcam()
+    webcam.start_webcam_client(True)
 
 
 

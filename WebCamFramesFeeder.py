@@ -3,7 +3,8 @@
 import socket, pickle, struct, cv2, Constants, threading
 from functools import partial
 from tkinter import *
-
+from imutils.video import VideoStream
+import time
 
 class Webcam:
 
@@ -101,7 +102,8 @@ class Webcam:
         # self.successfulConnection = True
 
         print("web cam started")
-        threading.Thread(target=self.webcam_client_feeder, args=[client_socket]).start()
+        # threading.Thread(target=self.webcam_client_feeder, args=[client_socket]).start()
+        threading.Thread(target=self.webcam_feeder_test, args=[client_socket]).start()
 
         # Creating a new window to terminate the web cam feed
         new_window = Tk()
@@ -155,6 +157,32 @@ class Webcam:
         vid.release()
         cv2.destroyAllWindows()
         print("Completed the feeding thread")
+
+    def webcam_feeder_test(self,client_socket):
+        vid = VideoStream(src=0).start()
+        time.sleep(2.0)
+        if client_socket:
+
+            while self.isWebCamAlive:
+                try:
+
+                    frame = vid.read()
+                    framePickle = pickle.dumps(frame)
+                    frameMessage = struct.pack("Q", len(framePickle)) + framePickle
+
+                    client_socket.sendall(frameMessage)
+
+                    # cv2.imshow('Transmitting Video. Press \'q\' to exit the screen', frame)
+                    key = cv2.waitKey(1) & 0xFF
+                    if key == ord('q'):
+                        client_socket.close()
+                        break
+                except Exception:
+                    break
+        vid.stop()
+        cv2.destroyAllWindows()
+        print("Completed the feeding thread")
+
 
     def shutdown_thread(self, Window):
         self.isWebCamAlive= False

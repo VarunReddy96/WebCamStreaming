@@ -64,6 +64,7 @@ class AWSServer:
 
             payload_size = struct.calcsize("Q")
             is_still_connected = True
+            md = SingleMotionDetector(accumWeight=0.1)
             total = 0
             while True:
                 try:
@@ -100,21 +101,11 @@ class AWSServer:
                     data = data[msg_size:]
                     # loads is used to load pickled data from a bytes string. The "s" in loads refers to the fact that in Python 2, the data was loaded from a string.
                     frame = pickle.loads(frame_data)
-                    print("Frame processed")
+                    # print("Frame processed")
                     # self.detect_motion_from_server(frame, total)
-                    self.show_video(frame)
-                    # for client_socket in list(self.client_socket_list):
-                    #     try:
-                    #         client_socket.sendall(packed_msg_size + frame_data)
-                    #     except Exception:
-                    #         print("Exception.Client socket closed because of disconnecting")
-                    #         self.threadLock.acquire()
-                    #         if client_socket in self.client_socket_list:
-                    #             self.client_socket_list.remove(
-                    #                 client_socket)  # If the Client is disconnected it is removed from the Client List
-                    #             client_socket.close()
-                    #         self.threadLock.release()
-                    #         continue
+                    # creating a motion detection Object
+
+                    self.detect_motion_from_server(frame, total, md)
                     if not is_still_connected:
                         webCam_feeder_socket.close()
                         break
@@ -153,8 +144,7 @@ class AWSServer:
             thread.start()
             print("Total Web Cams Active:", threading.activeCount() - 1)
 
-
-    def show_video(self,frame):
+    def show_video(self, frame):
         print("In detect motion sensor")
         global outputFrame, lock
         try:
@@ -163,13 +153,12 @@ class AWSServer:
         except Exception:
             print('Exception here when updating output frame and locking')
 
-
-    def detect_motion_from_server(self, frame, total, frameCount=32):
-        print("In detect motion sensor")
+    def detect_motion_from_server(self, frame, total, md, frameCount=Constants.FRAMES_COUNT):
+        # print("In detect motion sensor")
         global outputFrame, lock
         # initialize the motion detector and the total number of frames
         # read thus far
-        md = SingleMotionDetector(accumWeight=0.1)
+
         frame = imutils.resize(frame, width=400)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, (7, 7), 0)
@@ -182,30 +171,23 @@ class AWSServer:
         # if the total number of frames has reached a sufficient
         # number to construct a reasonable background model, then
         # continue to process the frame
-        try:
-            if total > frameCount:
-                # detect motion in the image
-                try:
-                    motion = md.detect(gray)
-                except Exception:
-                    print('Exception. detecting motion failed here check SingleMotionDetector')
-                # check to see if motion was found in the frame
-                if motion is not None:
-                    # unpack the tuple and draw the box surrounding the
-                    # "motion area" on the output frame
-                    (thresh, (minX, minY, maxX, maxY)) = motion
-                    cv2.rectangle(frame, (minX, minY), (maxX, maxY),
-                                  (0, 0, 255), 2)
-        except Exception:
-            print('Exception. Checking for motion detection')
-            print(Exception)
-            return
+        if total > frameCount:
+            # detect motion in the image
+            motion = md.detect(gray)
+            # check to see if motion was found in the frame
+            if motion is not None:
+                # unpack the tuple and draw the box surrounding the
+                # "motion area" on the output frame
+                (thresh, (minX, minY, maxX, maxY)) = motion
+                cv2.rectangle(frame, (minX, minY), (maxX, maxY),
+                              (0, 0, 255), 2)
 
         # update the background model and increment the total number
         # of frames read thus far
+        # print("Updating motion detection background")
         md.update(gray)
         total += 1
-        print("total upgraded to",total)
+        # print("total upgraded to",total)
         # acquire the lock, set the output frame, and release the
         # lock
         try:

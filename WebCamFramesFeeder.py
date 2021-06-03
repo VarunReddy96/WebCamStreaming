@@ -57,47 +57,48 @@ class Webcam:
     #             cv2.destroyAllWindows()
 
 
-    def start_webcam_client(self, isCorrectIP=None):
-        Window = Tk()
-        # Renaming the window title
-        Window.title("WebCam Streaming Window")
+    # def start_webcam_client(self, isCorrectIP=None):
+    #     Window = Tk()
+    #     # Renaming the window title
+    #     Window.title("WebCam Streaming Window")
+    #
+    #     Window.geometry('500x200')
+    #
+    #     ip_text = StringVar()
+    #     ip_label = Label(Window, text='Enter the IP address of the Server', font=['bold']).pack()
+    #     #ip_label.grid(row=0, column=0, sticky=W)
+    #     ip_entry = Entry(Window, textvariable=ip_text).pack()
+    #     #ip_entry.grid(row=0, column=0, padx=350)
+    #
+    #     # Creating the connect Button
+    #     # print(ip_text.get(),"--------------------------")
+    #     add_btn = Button(Window, text='Connect', width=12, command=partial(self.webcam_client, ip_text, Window)).pack()
+    #     #add_btn.grid(row=2, column=0, padx=320)
+    #     if not isCorrectIP:
+    #         ip_label = Label(Window, text='Please enter correct IP address', font=['bold']).pack()
+    #     Window.mainloop()
+    #     # If terminated by using the Close Button, Shutting down the web cam
+    #     print("Here!!!!!!!!!!!!!!!!!!!!!!!!!")
+    #     #self.isWebCamAlive = False
+    #     # print("WebCam Started")
 
-        Window.geometry('500x200')
-
-        ip_text = StringVar()
-        ip_label = Label(Window, text='Enter the IP address of the Server', font=['bold']).pack()
-        #ip_label.grid(row=0, column=0, sticky=W)
-        ip_entry = Entry(Window, textvariable=ip_text).pack()
-        #ip_entry.grid(row=0, column=0, padx=350)
-
-        # Creating the connect Button
-        # print(ip_text.get(),"--------------------------")
-        add_btn = Button(Window, text='Connect', width=12, command=partial(self.webcam_client, ip_text, Window)).pack()
-        #add_btn.grid(row=2, column=0, padx=320)
-        if not isCorrectIP:
-            ip_label = Label(Window, text='Please enter correct IP address', font=['bold']).pack()
-        Window.mainloop()
-        # If terminated by using the Close Button, Shutting down the web cam
-        print("Here!!!!!!!!!!!!!!!!!!!!!!!!!")
-        #self.isWebCamAlive = False
-        # print("WebCam Started")
-
-    def webcam_client(self, ip_text, Window):
+    def webcam_client(self):
 
         # destroying the current window
 
-        print("destroying window")
-        Window.destroy()
+        # print("destroying window")
+        # Window.destroy()
 
         # Socket creation
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        host_ip = ip_text.get()
+        host_ip = Constants.SERVER_IP
         #print("host ip add:", host_ip)
         port = Constants.CAM_PORT
         try:
             client_socket.connect((host_ip, port))  # socket address is a tuple
         except Exception:
-            self.start_webcam_client(False)
+            # self.start_webcam_client(False)
+            print("Enter wrong IP information or the wrong port")
             return
         # self.successfulConnection = True
 
@@ -128,35 +129,35 @@ class Webcam:
 
 
 
-    def webcam_client_feeder(self, client_socket):
-
-        vid = cv2.VideoCapture(0)  # Opening the WebCam using the 0 index or the 1st available camera
-
-        # Accepting a connection from a Client
-        if client_socket:
-
-            while vid.isOpened() and self.isWebCamAlive:
-                try:
-
-                    isImgRead, frame = vid.read()
-                    if not isImgRead:
-                        print("Can't Receive any streaming frames. Exiting.....")
-                        break
-                    framePickle = pickle.dumps(frame)
-                    frameMessage = struct.pack("Q", len(framePickle)) + framePickle
-
-                    client_socket.sendall(frameMessage)
-
-                    # cv2.imshow('Transmitting Video. Press \'q\' to exit the screen', frame)
-                    key = cv2.waitKey(1) & 0xFF
-                    if key == ord('q'):
-                        client_socket.close()
-                        break
-                except Exception:
-                    break
-        vid.release()
-        cv2.destroyAllWindows()
-        print("Completed the feeding thread")
+    # def webcam_client_feeder(self, client_socket):
+    #
+    #     vid = cv2.VideoCapture(0)  # Opening the WebCam using the 0 index or the 1st available camera
+    #
+    #     # Accepting a connection from a Client
+    #     if client_socket:
+    #
+    #         while vid.isOpened() and self.isWebCamAlive:
+    #             try:
+    #
+    #                 isImgRead, frame = vid.read()
+    #                 if not isImgRead:
+    #                     print("Can't Receive any streaming frames. Exiting.....")
+    #                     break
+    #                 framePickle = pickle.dumps(frame)
+    #                 frameMessage = struct.pack("Q", len(framePickle)) + framePickle
+    #
+    #                 client_socket.sendall(frameMessage)
+    #
+    #                 # cv2.imshow('Transmitting Video. Press \'q\' to exit the screen', frame)
+    #                 key = cv2.waitKey(1) & 0xFF
+    #                 if key == ord('q'):
+    #                     client_socket.close()
+    #                     break
+    #             except Exception:
+    #                 break
+    #     vid.release()
+    #     cv2.destroyAllWindows()
+    #     print("Completed the feeding thread")
 
     def webcam_feeder_test(self,client_socket):
         vid = VideoStream(src=0).start()
@@ -191,14 +192,9 @@ class Webcam:
 
 
 
-
-
-
-
-
 def main():
     webcam = Webcam()
-    webcam.start_webcam_client(True)
+    webcam.webcam_client()
 
 
 
